@@ -1,82 +1,70 @@
 const mongoose = require("mongoose");
 
 // ----------------------------
+// Review Schema
+// ----------------------------
+const ReviewSchema = new mongoose.Schema(
+  {
+    userName: { type: String, default: "Anonymous", trim: true },
+    rating: { type: Number, required: true, min: 0, max: 5 },
+    comment: { type: String, required: true, trim: true, maxlength: 500 },
+  },
+  { timestamps: true }
+);
+
+// Pre-save debug hook for reviews
+ReviewSchema.pre('save', function (next) {
+  console.log(`[ReviewSchema] Saving review by: ${this.userName}, rating: ${this.rating}`);
+  next();
+});
+
+// ----------------------------
 // Product Schema
 // ----------------------------
 const ProductSchema = new mongoose.Schema(
   {
-    image: {
-      type: String,
-      required: [true, "Product image URL is required"],
-      trim: true,
-    },
-    title: {
-      type: String,
-      required: [true, "Product title is required"],
-      trim: true,
-      maxlength: [100, "Title cannot exceed 100 characters"],
-    },
-    description: {
-      type: String,
-      required: [true, "Product description is required"],
-      trim: true,
-      maxlength: [1000, "Description cannot exceed 1000 characters"],
-    },
-    category: {
-      type: String,
-      required: [true, "Product category is required"],
-      trim: true,
-    },
-    brand: {
-      type: String,
-      required: [true, "Brand is required"],
-      trim: true,
-      maxlength: [50, "Brand cannot exceed 50 characters"],
-    },
-    price: {
-      type: Number,
-      required: [true, "Price is required"],
-      min: [0, "Price cannot be negative"],
-    },
-    salePrice: {
-      type: Number,
-      min: [0, "Sale price cannot be negative"],
-      default: 0,
-    },
-    totalStock: {
-      type: Number,
-      required: true,
-      min: [0, "Stock cannot be negative"],
-      default: 0,
-    },
-    rating: {
-      type: Number,
-      min: 0,
-      max: 5,
-      default: 0, // allows "Best Rated" sorting
-    },
+    image: { type: String, required: true, trim: true },
+    title: { type: String, required: true, trim: true, maxlength: 100 },
+    description: { type: String, required: true, trim: true, maxlength: 1000 },
+    category: { type: String, required: true, trim: true },
+    brand: { type: String, required: true, trim: true, maxlength: 50 },
+    price: { type: Number, required: true, min: 0 },
+    salePrice: { type: Number, default: 0, min: 0 },
+    totalStock: { type: Number, default: 0, min: 0 },
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    reviews: [ReviewSchema],
   },
-  {
-    timestamps: true, // adds createdAt and updatedAt
-  }
+  { timestamps: true }
 );
 
-// ----------------------------
-// Virtual: effectivePrice
-// ----------------------------
+// Virtual field for effective price
 ProductSchema.virtual("effectivePrice").get(function () {
   return this.salePrice && this.salePrice > 0 ? this.salePrice : this.price;
 });
 
 // ----------------------------
-// Indexes for faster queries
+// Pre-save debug hook for products
 // ----------------------------
+ProductSchema.pre('save', function (next) {
+  console.log(`[ProductModel] Saving product: ${this.title}, category: ${this.category}, brand: ${this.brand}`);
+  next();
+});
+
+// ----------------------------
+// Pre-update debug hook for products
+// ----------------------------
+ProductSchema.pre('findOneAndUpdate', function (next) {
+  console.log(`[ProductModel] Updating product with filter:`, this.getQuery());
+  next();
+});
+
+// Indexes for faster queries
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ brand: 1 });
 ProductSchema.index({ price: 1 });
-ProductSchema.index({ createdAt: -1 }); // for newest sort
+ProductSchema.index({ createdAt: -1 });
 
 // ----------------------------
-// Export model
+// Export Model
 // ----------------------------
 module.exports = mongoose.model("Product", ProductSchema);

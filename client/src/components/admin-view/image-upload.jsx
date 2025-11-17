@@ -1,9 +1,10 @@
 import axios from "axios";
 import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "@/hooks/use-toast"; // optional toast for better debugging UX
 
 // -----------------------------
-// Skeleton Loader (While Uploading)
+// Skeleton Loader
 // -----------------------------
 const Skeleton = () => (
   <div className="w-full px-4 py-2">
@@ -36,6 +37,7 @@ const ProductImageUpload = ({
   // Reset Selected Image
   // -----------------------------
   const resetImage = () => {
+    console.log("[ProductImageUpload] Resetting image"); // Debug
     setImageFile(null);
     setUploadedImageUrl("");
     setError("");
@@ -46,6 +48,7 @@ const ProductImageUpload = ({
   // Handle File Selection
   // -----------------------------
   const handleFileSelection = (file) => {
+    console.log("[ProductImageUpload] Selected file:", file?.name); // Debug
     if (!file) return;
     setImageFile(file);
     setUploadedImageUrl("");
@@ -57,6 +60,7 @@ const ProductImageUpload = ({
   // -----------------------------
   const handleDragDrop = (event) => {
     event.preventDefault();
+    console.log("[ProductImageUpload] File dropped"); // Debug
     handleFileSelection(event.dataTransfer.files?.[0]);
   };
 
@@ -67,6 +71,7 @@ const ProductImageUpload = ({
     if (!imageFile) return;
 
     const uploadImage = async () => {
+      console.log("[ProductImageUpload] Uploading file:", imageFile.name); // Debug
       setImageLoadingState(true);
       setError("");
 
@@ -82,17 +87,21 @@ const ProductImageUpload = ({
           }
         );
 
-        console.log("Upload Response:", data);
+        console.log("[ProductImageUpload] Upload Response:", data);
 
-        // Corrected path to match backend response
-        if (data?.success && data?.data?.url) {
-          setUploadedImageUrl(data.data.url);
+        // Flexible backend response handling
+        const uploadedUrl = data?.data?.url || data?.data?.filePath || data?.url;
+        if (data?.success && uploadedUrl) {
+          setUploadedImageUrl(uploadedUrl);
+          console.log("[ProductImageUpload] Image uploaded successfully:", uploadedUrl); // Debug
+          toast?.({ title: "Image uploaded successfully" }); // optional
         } else {
           throw new Error(data?.message || "Upload failed");
         }
       } catch (err) {
-        console.error("Upload Error:", err);
+        console.error("[ProductImageUpload] Upload Error:", err);
         setError("Image upload failed: " + err.message);
+        toast?.({ title: "Image upload failed", variant: "destructive" }); // optional
       } finally {
         setImageLoadingState(false);
       }
@@ -132,9 +141,7 @@ const ProductImageUpload = ({
           <div className="flex items-center justify-between w-full px-3">
             <div className="flex items-center gap-2">
               <FileIcon className="w-6 h-6 text-primary" />
-              <p className="text-sm font-medium text-gray-200">
-                {imageFile.name}
-              </p>
+              <p className="text-sm font-medium text-gray-200">{imageFile.name}</p>
             </div>
             <button
               type="button"

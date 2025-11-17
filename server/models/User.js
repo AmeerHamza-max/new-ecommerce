@@ -31,7 +31,7 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin"], // restrict roles to allowed values
+      enum: ["user", "admin"],
       default: "user",
     },
   },
@@ -39,6 +39,22 @@ const UserSchema = new mongoose.Schema(
     timestamps: true, // adds createdAt and updatedAt
   }
 );
+
+// ----------------------------
+// Pre-save debug hook
+// ----------------------------
+UserSchema.pre('save', function (next) {
+  console.log(`[UserModel] Saving user: ${this.userName}, email: ${this.email}, role: ${this.role}`);
+  next();
+});
+
+// ----------------------------
+// Pre-update debug hook
+// ----------------------------
+UserSchema.pre('findOneAndUpdate', function (next) {
+  console.log(`[UserModel] Updating user with filter:`, this.getQuery(), "Update Data:", this.getUpdate());
+  next();
+});
 
 // ----------------------------
 // Indexes for optimization

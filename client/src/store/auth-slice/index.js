@@ -26,9 +26,10 @@ export const registerUser = createAsyncThunk(
         formData,
         { withCredentials: true }
       );
-      console.log("Register Response Payload:", data);
+      console.log("[auth/registerUser] Response Payload:", data);
       return data; // { success, message, user? }
     } catch (error) {
+      console.error("[auth/registerUser] Error:", error.response || error);
       return rejectWithValue(error.response?.data?.message || "Registration failed");
     }
   }
@@ -44,9 +45,10 @@ export const loginUser = createAsyncThunk(
         formData,
         { withCredentials: true }
       );
-      console.log("Login Response Payload:", data);
+      console.log("[auth/loginUser] Response Payload:", data);
       return data; // { success, message, user }
     } catch (error) {
+      console.error("[auth/loginUser] Error:", error.response || error);
       return rejectWithValue(error.response?.data?.message || "Login failed");
     }
   }
@@ -61,9 +63,10 @@ export const checkAuth = createAsyncThunk(
         "http://localhost:5000/api/auth/check-auth",
         { withCredentials: true }
       );
-      console.log("CheckAuth Response Payload:", data);
+      console.log("[auth/checkAuth] Response Payload:", data);
       return data; // { success, message, user }
     } catch (error) {
+      console.error("[auth/checkAuth] Error:", error.response || error);
       return rejectWithValue(error.response?.data?.message || "Auth check failed");
     }
   }
@@ -79,9 +82,10 @@ export const logoutUser = createAsyncThunk(
         {},
         { withCredentials: true }
       );
-      console.log("Logout Response Payload:", data);
+      console.log("[auth/logoutUser] Response Payload:", data);
       return data;
     } catch (error) {
+      console.error("[auth/logoutUser] Error:", error.response || error);
       return rejectWithValue(error.response?.data?.message || "Logout failed");
     }
   }
@@ -98,70 +102,91 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
       state.error = null;
+      console.log("[auth/setUser] User set:", action.payload);
     },
     clearError: (state) => {
       state.error = null;
+      console.log("[auth/clearError] Error cleared");
     },
   },
   extraReducers: (builder) => {
     builder
+      // ----------------------------
       // REGISTER
+      // ----------------------------
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        console.log("[auth/registerUser] Pending...");
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user || null;
         state.isAuthenticated = !!action.payload.user;
+        console.log("[auth/registerUser] Fulfilled, User:", state.user);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        console.error("[auth/registerUser] Rejected:", state.error);
       })
 
+      // ----------------------------
       // LOGIN
+      // ----------------------------
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        console.log("[auth/loginUser] Pending...");
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user || null;
         state.isAuthenticated = !!action.payload.user;
+        console.log("[auth/loginUser] Fulfilled, User:", state.user);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
         state.user = null;
         state.isAuthenticated = false;
+        console.error("[auth/loginUser] Rejected:", state.error);
       })
 
+      // ----------------------------
       // CHECK AUTH
+      // ----------------------------
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        console.log("[auth/checkAuth] Pending...");
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user || null;
         state.isAuthenticated = !!action.payload.user;
+        console.log("[auth/checkAuth] Fulfilled, User:", state.user);
       })
       .addCase(checkAuth.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
         state.error = action.payload;
+        console.error("[auth/checkAuth] Rejected:", state.error);
       })
 
+      // ----------------------------
       // LOGOUT
+      // ----------------------------
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
+        console.log("[auth/logoutUser] Fulfilled, User logged out");
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.error = action.payload;
+        console.error("[auth/logoutUser] Rejected:", state.error);
       });
   },
 });

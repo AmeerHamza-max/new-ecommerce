@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { ShoppingHeader } from './header';
+import { useSelector } from 'react-redux';
 
 const ShoppingLayout = () => {
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    console.log("[ShoppingLayout] Render", { isAuthenticated, user });
+  }, [isAuthenticated, user]);
+
   return (
     <div className='flex flex-col min-h-screen bg-neutral-950 text-gray-200 overflow-hidden'>
       

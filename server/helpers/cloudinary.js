@@ -1,19 +1,36 @@
 const cloudinary = require("cloudinary").v2;
 const multer = require("multer");
 
+// ----------------------------
+// Cloudinary Configuration
+// ----------------------------
 cloudinary.config({
-  cloud_name: "dacqh79dn", // your cloud name
-  api_key: "771634578923789",
-  api_secret: "H3O8AvL9O_oGmIXvJ5TpKFYEVPc",
+  cloud_name: process.env.CLOUDINARY_NAME || "dacqh79dn",
+  api_key: process.env.CLOUDINARY_KEY || "771634578923789",
+  api_secret: process.env.CLOUDINARY_SECRET || "H3O8AvL9O_oGmIXvJ5TpKFYEVPc",
   secure: true,
 });
 
+console.log("[Cloudinary] Configuration loaded successfully");
+
+// ----------------------------
+// Multer Memory Storage
+// ----------------------------
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+console.log("[Multer] Memory storage initialized");
 
+// ----------------------------
+// Image Upload Utility
+// ----------------------------
 async function imageUploadUtils(file) {
   try {
-    if (!file) throw new Error("No file provided for upload");
+    if (!file) {
+      console.warn("[Cloudinary] No file provided for upload");
+      throw new Error("No file provided for upload");
+    }
+
+    console.log("[Cloudinary] Starting upload for file type:", file.mimetype || "unknown");
 
     const result = await cloudinary.uploader.upload(file, {
       resource_type: "image",
@@ -36,4 +53,7 @@ async function imageUploadUtils(file) {
   }
 }
 
+// ----------------------------
+// Exports
+// ----------------------------
 module.exports = { upload, imageUploadUtils };

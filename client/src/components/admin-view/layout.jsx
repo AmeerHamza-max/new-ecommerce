@@ -1,17 +1,36 @@
-import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import AdminHeader from "./header";
 import AdminSidebar from "./sidebar";
 
+const debugLog = (label, data) => console.log(`[AdminLayout] ${label}:`, data);
+
 const AdminLayout = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const toggleSidebar = () => setIsMobileSidebarOpen((prev) => !prev);
+  // Get auth state directly from Redux
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  const toggleSidebar = () => {
+    debugLog("Toggle Sidebar", !isMobileSidebarOpen);
+    setIsMobileSidebarOpen((prev) => !prev);
+  };
   const closeSidebar = () => setIsMobileSidebarOpen(false);
+
+  useEffect(() => {
+    debugLog("isAuthenticated", isAuthenticated);
+    debugLog("user", user);
+
+    if (!isAuthenticated || !user || user.role !== "admin") {
+      console.warn("[AdminLayout] Unauthorized access attempt. Redirecting to /auth/login");
+      navigate("/auth/login", { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <div className="flex min-h-screen w-full bg-neutral-950 text-gray-200 relative">
-      
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-neutral-950 border-r border-neutral-800 p-6">
         <AdminSidebar />
@@ -26,7 +45,6 @@ const AdminLayout = () => {
         <AdminSidebar onMobileItemClick={closeSidebar} onCloseMobile={closeSidebar} />
       </div>
 
-      {/* Overlay */}
       {isMobileSidebarOpen && (
         <div
           onClick={closeSidebar}

@@ -7,7 +7,6 @@ import { Provider } from "react-redux";
 import store from "./store/store";
 import { Toaster } from "./components/ui/toaster";
 
-
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>

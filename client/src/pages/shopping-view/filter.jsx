@@ -4,11 +4,15 @@ import React from "react";
 
 function ProductFilter({ selectedFilters = {}, onFilterChange }) {
 
+  // ----------------------------------------
+  // Update a checkbox in a stable way
+  // ----------------------------------------
   const handleCheckboxChange = (categoryKey, optionId) => {
-    const current = selectedFilters[categoryKey] || [];
-    const updated = current.includes(optionId)
-      ? current.filter(v => v !== optionId)
-      : [...current, optionId];
+    const existing = selectedFilters[categoryKey] || [];
+
+    const updated = existing.includes(optionId)
+      ? existing.filter((id) => id !== optionId)
+      : [...existing, optionId];
 
     onFilterChange(categoryKey, updated);
   };
@@ -20,14 +24,16 @@ function ProductFilter({ selectedFilters = {}, onFilterChange }) {
       </div>
 
       <div className="p-4 space-y-6">
-        {Object.keys(filterOptions).map(categoryKey => (
+        {Object.keys(filterOptions).map((categoryKey) => (
           <div key={categoryKey}>
+            {/* Category Title */}
             <h3 className="text-base font-semibold text-gray-200 capitalize border-b border-gray-800 pb-1 mb-2">
               {categoryKey}
             </h3>
 
+            {/* Options */}
             <div className="grid gap-2">
-              {filterOptions[categoryKey].map(option => (
+              {filterOptions[categoryKey].map((option) => (
                 <Label.Root
                   key={option.id}
                   className="flex items-center gap-2 text-gray-300 hover:text-gray-100 cursor-pointer"

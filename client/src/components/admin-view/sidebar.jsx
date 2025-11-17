@@ -8,6 +8,9 @@ const adminSidebarMenuItems = [
   { id: "orders", label: "Orders", path: "/admin/orders", icon: BadgeCheck },
 ];
 
+// -----------------------------
+// MenuItems Component
+// -----------------------------
 const MenuItems = ({ onClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,8 +24,18 @@ const MenuItems = ({ onClick }) => {
             key={id}
             role="button"
             tabIndex={0}
-            onClick={() => { navigate(path); onClick?.(); }}
-            onKeyDown={(e) => { if (["Enter", " "].includes(e.key)) { navigate(path); onClick?.(); } }}
+            onClick={() => {
+              console.log(`[AdminSidebar] Navigating to ${path}`); // Debug
+              navigate(path);
+              onClick?.();
+            }}
+            onKeyDown={(e) => {
+              if (["Enter", " "].includes(e.key)) {
+                console.log(`[AdminSidebar] Keyboard navigation to ${path}`); // Debug
+                navigate(path);
+                onClick?.();
+              }
+            }}
             className={`flex items-center gap-2 rounded-md px-3 py-2 cursor-pointer transition-colors ${
               isActive ? "bg-neutral-800" : "hover:bg-neutral-800"
             }`}
@@ -36,10 +49,14 @@ const MenuItems = ({ onClick }) => {
   );
 };
 
+// -----------------------------
+// AdminSidebar Component
+// -----------------------------
 const AdminSidebar = ({ onMobileItemClick, onCloseMobile }) => {
   const navigate = useNavigate();
 
   const handleBrandClick = () => {
+    console.log("[AdminSidebar] Brand clicked, navigating to /admin/dashboard"); // Debug
     navigate("/admin/dashboard");
     onMobileItemClick?.();
   };

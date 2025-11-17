@@ -1,52 +1,42 @@
-// controllers/admin/products-controller.js
-
 const { imageUploadUtils } = require("../../helpers/cloudinary");
 const Product = require("../../models/Product");
+
+// ----------------------------
+// Debug helper
+// ----------------------------
+const logInfo = (msg, data) => console.log(`[AdminProductController] ${msg}:`, data);
+const logError = (msg, error) => console.error(`[AdminProductController] ${msg}:`, error);
 
 // ----------------------------
 // Upload Product Image (Cloudinary)
 // ----------------------------
 const handleImageUpload = async (req, res) => {
   try {
-    // Check if file exists
     if (!req.file || !req.file.buffer) {
-      return res.status(400).json({
-        success: false,
-        message: "No image file provided",
-      });
+      logError("No file received", req.file);
+      return res.status(400).json({ success: false, message: "No image file provided" });
     }
 
-    // Convert uploaded file to Base64
     const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-
-    // Upload to Cloudinary using helper
     const uploadResult = await imageUploadUtils(base64Image);
 
-    // Validate Cloudinary response
     if (!uploadResult || !uploadResult.url) {
-      console.error("❌ Cloudinary Upload Failed:", uploadResult);
-      return res.status(500).json({
-        success: false,
-        message: "Cloudinary upload failed. Please try again.",
-      });
+      logError("Cloudinary Upload Failed", uploadResult);
+      return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
     }
 
-    // ✅ Success response
-    console.log("✅ Cloudinary Upload Successful:", uploadResult.url);
+    logInfo("Image Upload Successful", uploadResult.url);
     return res.status(200).json({
       success: true,
       message: "Image uploaded successfully",
-      data: {
-        url: uploadResult.url,
-        public_id: uploadResult.public_id,
-      },
+      data: { url: uploadResult.url, public_id: uploadResult.public_id },
     });
   } catch (error) {
-    console.error("❌ Image Upload Error:", error.message || error);
+    logError("Image Upload Error", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error during image upload",
-      error: error.message || "Unknown error",
+      error: error.message,
     });
   }
 };
@@ -57,21 +47,13 @@ const handleImageUpload = async (req, res) => {
 const addProduct = async (req, res) => {
   try {
     const newProduct = await Product.create(req.body);
-
-    return res.status(201).json({
-      success: true,
-      message: "Product added successfully",
-      result: newProduct, // ✅ match consistent key name
-    });
+    logInfo("Product Added", newProduct._id);
+    return res.status(201).json({ success: true, message: "Product added successfully", result: newProduct });
   } catch (error) {
-    console.error("Add Product Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Adding product failed",
-    });
+    logError("Add Product Error", error);
+    return res.status(500).json({ success: false, message: error.message || "Adding product failed" });
   }
 };
-
 
 // ----------------------------
 // Fetch All Products
@@ -79,16 +61,11 @@ const addProduct = async (req, res) => {
 const fetchAllProducts = async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
-    return res.status(200).json({
-      success: true,
-      data: products,
-    });
+    logInfo("Fetched All Products", products.length);
+    return res.status(200).json({ success: true, data: products });
   } catch (error) {
-    console.error("Fetch Products Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Fetching products failed",
-    });
+    logError("Fetch Products Error", error);
+    return res.status(500).json({ success: false, message: "Fetching products failed" });
   }
 };
 
@@ -97,29 +74,17 @@ const fetchAllProducts = async (req, res) => {
 // ----------------------------
 const editProduct = async (req, res) => {
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      logError("Product Not Found", req.params.id);
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: updatedProduct,
-    });
+    logInfo("Product Updated", updatedProduct._id);
+    return res.status(200).json({ success: true, data: updatedProduct });
   } catch (error) {
-    console.error("Edit Product Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Updating product failed",
-    });
+    logError("Edit Product Error", error);
+    return res.status(500).json({ success: false, message: "Updating product failed" });
   }
 };
 
@@ -129,30 +94,19 @@ const editProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-
     if (!deletedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      logError("Product Not Found for Deletion", req.params.id);
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Product deleted successfully",
-    });
+    logInfo("Product Deleted", deletedProduct._id);
+    return res.status(200).json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
-    console.error("Delete Product Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Deleting product failed",
-    });
+    logError("Delete Product Error", error);
+    return res.status(500).json({ success: false, message: "Deleting product failed" });
   }
 };
 
-// ----------------------------
-// Exports
-// ----------------------------
 module.exports = {
   handleImageUpload,
   addProduct,

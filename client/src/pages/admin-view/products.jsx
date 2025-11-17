@@ -9,7 +9,7 @@ import {
   fetchAllProducts,
   editProduct,
   deleteProduct,
-} from "@/store/admin/product-slice";
+} from "../../store/admin/product-slice";
 import { toast } from "@/hooks/use-toast";
 import AdminProductTile from "./product-tile";
 
@@ -55,16 +55,25 @@ const AdminProducts = () => {
   // Check if any field is empty (excluding image)
   // ---------------------------
   const isFormIncomplete = () => {
-    return Object.entries(formData).some(
-      ([key, value]) => key !== "image" && (!value || value === "")
-    );
+    return Object.entries(formData).some(([key, value]) => {
+      if (key === "image") return false;
+      if (typeof value === "number") return value === null || value === undefined;
+      return !value || value === "";
+    });
   };
 
   // ---------------------------
   // Add or Edit Product
   // ---------------------------
   const handleSubmit = async () => {
-    if (isFormIncomplete()) return; // Prevent submit if any field empty
+    console.log("Submitting FormData:", formData);
+    console.log("UploadedImageUrl:", uploadedImageUrl, "ImageLoading:", imageLoadingState);
+
+    if (isFormIncomplete()) {
+      toast({ title: "Please fill all required fields", variant: "destructive" });
+      return;
+    }
+
     if (!uploadedImageUrl || imageLoadingState) {
       toast({ title: "Please upload a valid image", variant: "destructive" });
       return;
@@ -83,7 +92,12 @@ const AdminProducts = () => {
         resultAction = await dispatch(addNewProduct(payload));
       }
 
-      if (resultAction?.payload?.success) {
+      console.log("Add/Edit Result:", resultAction);
+
+      const success = resultAction?.payload?.success || false;
+      const message = resultAction?.payload?.message || "Unexpected Error";
+
+      if (success) {
         await dispatch(fetchAllProducts());
         toast({
           title: currentEditedId
@@ -91,19 +105,17 @@ const AdminProducts = () => {
             : "Product Added Successfully",
         });
 
-        // Reset form after successful action
+        // Reset form after success
         setFormData(initialFormData);
         setImageFile(null);
         setUploadedImageUrl("");
         setCurrentEditedId(null);
         setIsDrawerOpen(false);
       } else {
-        toast({
-          title: resultAction?.payload?.message || "Error saving product",
-          variant: "destructive",
-        });
+        toast({ title: message, variant: "destructive" });
       }
-    } catch {
+    } catch (error) {
+      console.error("Submit Error:", error);
       toast({ title: "Unexpected Error", variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -111,15 +123,25 @@ const AdminProducts = () => {
   };
 
   // ---------------------------
-  // Edit button click — clear all fields except image
+  // Edit button click — populate all fields
   // ---------------------------
   const handleEdit = (product) => {
-    setFormData(initialFormData); // Clear all fields
-    setUploadedImageUrl(product.image); // Keep image visible
+    setFormData({
+      title: product.title || "",
+      description: product.description || "",
+      category: product.category || "",
+      brand: product.brand || "",
+      price: product.price || "",
+      salePrice: product.salePrice || "",
+      totalStock: product.totalStock || "",
+      image: product.image || null,
+    });
+    setUploadedImageUrl(product.image);
     setImageFile(null);
     setImageLoadingState(false);
     setCurrentEditedId(product._id);
     openDrawer();
+    console.log("Editing Product:", product);
   };
 
   // ---------------------------
@@ -131,21 +153,26 @@ const AdminProducts = () => {
 
     try {
       const resultAction = await dispatch(deleteProduct(product._id));
-      if (resultAction?.payload?.success) {
+      console.log("Delete Result:", resultAction);
+
+      const success = resultAction?.payload?.success || false;
+      const message = resultAction?.payload?.message || "Unexpected Error";
+
+      if (success) {
         await dispatch(fetchAllProducts());
         toast({ title: "Product Deleted Successfully" });
       } else {
-        toast({
-          title: resultAction?.payload?.message || "Error deleting product",
-          variant: "destructive",
-        });
+        toast({ title: message, variant: "destructive" });
       }
-    } catch {
+    } catch (error) {
+      console.error("Delete Error:", error);
       toast({ title: "Unexpected Error", variant: "destructive" });
     }
   };
 
+  // ---------------------------
   // Fetch all products on mount
+  // ---------------------------
   useEffect(() => {
     dispatch(fetchAllProducts());
   }, [dispatch]);
@@ -206,7 +233,7 @@ const AdminProducts = () => {
             setUploadedImageUrl={setUploadedImageUrl}
             setImageLoadingState={setImageLoadingState}
             imageLoadingState={imageLoadingState}
-            disabled={true} // Image non-editable
+            disabled={false} // Set true if you want image non-editable
           />
 
           <CommonForm
@@ -224,7 +251,6 @@ const AdminProducts = () => {
             }
             showButton={true}
             onSubmit={handleSubmit}
-            buttonDisabled={isFormIncomplete()} // Disable if any field empty
           />
         </div>
       </div>
