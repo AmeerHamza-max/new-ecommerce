@@ -4,10 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { registerUser } from "@/store/auth-slice";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff } from "lucide-react";
 
 // ---------------------------------------
-// Registration Form Controls
+// Registration Form Controls (6 Fields)
 // ---------------------------------------
 const registerFormControls = [
   {
@@ -15,6 +14,7 @@ const registerFormControls = [
     label: "Username",
     placeholder: "Enter your username",
     componentType: "input",
+    type: "text", // Explicitly set type
   },
   {
     name: "email",
@@ -26,18 +26,47 @@ const registerFormControls = [
   {
     name: "password",
     label: "Password",
+    label: "Password (Min 8 characters)",
     placeholder: "Enter your password",
     componentType: "input",
     type: "password",
   },
+  {
+    name: "confirmPassword",
+    label: "Confirm Password",
+    placeholder: "Re-enter your password",
+    componentType: "input",
+    type: "password",
+  },
+  {
+    name: "role",
+    label: "Role Selection",
+    placeholder: "Select your role",
+    componentType: "select",
+    options: [
+      { id: "user", label: "User (Default)" },
+      { id: "seller", label: "Seller/Vendor" },
+    ],
+  },
+  {
+    name: "isNotRobot",
+    label: "I am not a robot",
+    placeholder: "Please confirm the checkbox",
+    componentType: "input",
+    type: "checkbox",
+  },
 ];
 
+// ---------------------------------------
+// Initial State (matching 6 fields)
 // ---------------------------------------
 const initialState = {
   userName: "",
   email: "",
   password: "",
-  passwordShow: false, // For eye toggle
+  confirmPassword: "",
+  role: "user", // Default value
+  isNotRobot: false,
 };
 
 // ---------------------------------------
@@ -50,65 +79,66 @@ const AuthRegister = () => {
   const { toast } = useToast();
 
   // ---------------------------------------
-  // Password Strength Logic
-  // ---------------------------------------
-  const getStrengthScore = (password) => {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[a-z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    return score;
-  };
-
-  const getStrengthLabel = (score) => {
-    if (score <= 2) return "Weak";
-    if (score === 3) return "Medium";
-    return "Strong";
-  };
-
-  const getStrengthColor = (score) => {
-    if (score <= 2) return "bg-red-500";
-    if (score === 3) return "bg-yellow-500";
-    return "bg-green-500";
-  };
-
-  const score = getStrengthScore(formData.password);
-  const strengthLabel = getStrengthLabel(score);
-  const strengthColor = getStrengthColor(score);
-
-  // ---------------------------------------
   // Submit handler
   // ---------------------------------------
   const handleSubmit = async (data = formData) => {
     setSubmitting(true);
+    console.log("[Debug] Submitting registration data:", data);
 
-    if (score < 3) {
+    // 1. Client-Side Validation: Password Match Check
+    if (data.password !== data.confirmPassword) {
       toast({
-        title: "Weak Password",
-        description: "Use at least 8 characters with upper, lower, numbers, symbols.",
+        title: "Validation Error",
+        description: "Password and Confirm Password must match.",
         variant: "destructive",
       });
       setSubmitting(false);
       return;
     }
 
+    // 2. Client-Side Validation: Minimum Length Check (optional, but good practice)
+    if (data.password.length < 8) {
+        toast({
+            title: "Password Too Short",
+            description: "Password must be at least 8 characters long.",
+            variant: "destructive",
+        });
+        setSubmitting(false);
+        return;
+    }
+
+    // 3. Client-Side Validation: CAPTCHA Check
+    if (!data.isNotRobot) {
+        toast({
+            title: "CAPTCHA Required",
+            description: "Please confirm you are not a robot.",
+            variant: "destructive",
+        });
+        setSubmitting(false);
+        return;
+    }
+
+
     try {
+      // .unwrap() automatically handles rejected state and throws the payload/error
       const payload = await dispatch(registerUser(data)).unwrap();
 
       if (payload?.success) {
-        toast({ title: payload.message });
+        toast({ title: payload.message || "Registration Successful" });
+        // Successful registration ke baad Login page par redirect
         navigate("/auth/login");
       } else {
+        // Fallback for non-error server responses that indicate failure
         toast({
           title: payload?.message || "Registration failed",
           variant: "destructive",
         });
       }
     } catch (err) {
+      // This catches errors rejected by the thunk (e.g., network, 400/500 from server)
+      const errorMsg = err.message || "Unexpected server error occurred.";
       toast({
-        title: err?.message || "Unexpected error occurred",
+        title: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -142,21 +172,7 @@ const AuthRegister = () => {
         showButton
         buttonDisabled={submitting}
       />
-
-      {/* Password Strength Bar */}
-      {formData.password && (
-        <div className="mt-4">
-          <div className="h-2 w-full bg-neutral-700 rounded">
-            <div
-              className={`h-2 rounded ${strengthColor}`}
-              style={{ width: `${(score / 5) * 100}%` }}
-            ></div>
-          </div>
-          <p className="text-sm mt-1 text-gray-300">
-            Password Strength: <span className="font-bold">{strengthLabel}</span>
-          </p>
-        </div>
-      )}
+      {/* Note: Password Strength Bar logic is now in CommonForm.jsx */}
     </div>
   );
 };

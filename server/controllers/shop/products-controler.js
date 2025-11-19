@@ -7,16 +7,30 @@ const logInfo = (msg, data) => console.log(`[ProductController] ${msg}:`, data);
 const logError = (msg, error) => console.error(`[ProductController] ${msg}:`, error);
 
 // ----------------------------
-// GET: Filtered + Sorted Products
+// GET: Filtered + Sorted + SEARCHED Products
 // ----------------------------
 const getFilteredProducts = async (req, res) => {
   try {
-    const { category = "", brand = "", sortBy = "price-lowtoHigh" } = req.query;
+    // search parameter ko extract kiya gaya
+    const { category = "", brand = "", sortBy = "price-lowtoHigh", search = "" } = req.query;
     logInfo("Filtering Products with query", req.query);
 
     const filters = {};
+    // Add Category/Brand filters
     if (category) filters.category = { $in: category.split(",") };
     if (brand) filters.brand = { $in: brand.split(",") };
+
+    // --- SEARCH LOGIC ADDED HERE ---
+    // Agar search term mojood ho, to title aur description mein search karo
+    if (search.trim()) {
+      const regex = new RegExp(search.trim(), 'i'); // Case-insensitive search
+      // MongoDB $or operator use kiya gaya taake title ya description mein match ho
+      filters.$or = [
+        { title: { $regex: regex } },
+        { description: { $regex: regex } }
+      ];
+    }
+    // ---------------------------------
 
     let sort = {};
     switch (sortBy) {
@@ -27,6 +41,7 @@ const getFilteredProducts = async (req, res) => {
       default: sort = { price: 1 };
     }
 
+    // `filters` object mein ab category, brand, aur optional $or search criteria hain
     const products = await Product.find(filters).sort(sort);
     logInfo("Filtered Products count", products.length);
 

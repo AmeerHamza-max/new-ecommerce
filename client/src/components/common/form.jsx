@@ -94,6 +94,8 @@ export const CommonForm = ({
               placeholder={placeholder}
               value={value}
               onChange={handleChange}
+              // !!! AUTOCOMPLETE OFF ADDED HERE !!!
+              autocomplete="off" 
               className="bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2 pr-10 focus:border-amber-400 focus:ring-amber-400"
             />
 
@@ -136,6 +138,8 @@ export const CommonForm = ({
             placeholder={placeholder}
             value={value}
             onChange={handleChange}
+            // !!! AUTOCOMPLETE OFF ADDED HERE !!!
+            autocomplete="off"
             className="bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2"
           />
         );
@@ -168,6 +172,8 @@ export const CommonForm = ({
             name={name}
             type="file"
             onChange={handleChange}
+            // !!! AUTOCOMPLETE OFF ADDED HERE !!!
+            autocomplete="off"
             className="bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2"
           />
         );

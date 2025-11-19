@@ -1,4 +1,3 @@
-// src/store/shop/shopProductSlice.js
 import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
@@ -8,15 +7,19 @@ const API_URL = "http://localhost:5000/api/shop";
 // ASYNC THUNKS
 // ---------------------------
 
-// Fetch all products
+// Fetch all products, including search query
 export const fetchAllProducts = createAsyncThunk(
   "shopProducts/fetchAllProducts",
-  async ({ category = [], brand = [], sortBy = "price-lowtoHigh" } = {}, { rejectWithValue }) => {
+  // search parameter add kiya gaya
+  async ({ category = [], brand = [], sortBy = "price-lowtoHigh", search = "" } = {}, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams();
       if (category.length) params.append("category", category.join(","));
       if (brand.length) params.append("brand", brand.join(","));
       if (sortBy) params.append("sortBy", sortBy);
+      
+      // Search term ko API call ke params mein add kiya gaya
+      if (search.trim()) params.append("search", search.trim()); 
 
       const { data } = await axios.get(`${API_URL}/products/get?${params.toString()}`, { withCredentials: true });
       console.log("[fetchAllProducts] Response:", data);

@@ -16,11 +16,12 @@ const {
 const logRoute = (route, info) => console.log(`[ProductRouter] ${route} called`, info || "");
 
 // -----------------------------
-// GET: Filtered products
+// GET: Filtered products (Includes sorting, filtering, and SEARCH via query parameters)
 // -----------------------------
 router.get("/get", async (req, res) => {
   logRoute("GET /get", { query: req.query });
   try {
+    // getFilteredProducts controller search, filter, aur sort sab handle karta hai
     await getFilteredProducts(req, res);
   } catch (error) {
     console.error("[ProductRouter] Error fetching filtered products:", error);

@@ -10,6 +10,9 @@ function AboutUs() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Replace with your desired location coordinates or place link
+  const mapSource = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.210459345091!2d144.9631627153163!3d-37.81627997975149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642b58d62638f%3A0x6b40285a86782d2a!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1677897258997!5m2!1sen!2sau";
+
   return (
     <div className="max-w-5xl mx-auto px-6 md:px-10 py-16">
       {/* Hero Section */}
@@ -51,6 +54,35 @@ function AboutUs() {
           “Style is a way to say who you are without having to speak.” – SH Shop
         </p>
       </motion.div>
+
+      ---
+
+      {/* Google Map Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="mt-12"
+      >
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          📍 Find Us
+        </h2>
+        <div className="rounded-xl overflow-hidden shadow-2xl">
+          <iframe
+            src={mapSource}
+            width="100%"
+            height="450"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="SH Shop Location on Google Maps"
+          ></iframe>
+        </div>
+      </motion.div>
+
+      ---
 
       {/* CTA Button */}
       <motion.div
