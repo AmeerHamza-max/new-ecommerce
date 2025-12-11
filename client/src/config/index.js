@@ -252,3 +252,42 @@ export const products = [
       "https://images.unsplash.com/photo-1593642532744-d377ab507dc8?auto=format&fit=crop&q=80&w=600",
   },
 ];
+
+export const addressFormControls = [
+  {
+    label: "Full Address",
+    name: "address",
+    componentType: "input",
+    type: "text",
+    placeholder: "Pakistan"
+  },
+  {
+    label: "City",
+    name: "city",
+    componentType: "input",
+    type: "text",
+    placeholder: "Lahore"
+  },
+  {
+    label: "Postal Code",
+    name: "pinCode",
+    componentType: "input",
+    type: "text",
+    placeholder: "54000"
+  },
+  {
+    label: "Phone Number",
+    name: "phone",
+    componentType: "input",
+    type: "tel",
+    placeholder: "+923218895764"
+  },
+  {
+    label: "Notes",
+    name: "notes",
+    componentType: "textarea",
+    type: "text",
+    placeholder: "Any delivery instructions..."
+  }
+];
+

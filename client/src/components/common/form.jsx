@@ -15,6 +15,24 @@ import { Eye, EyeOff } from "lucide-react";
 // Debug helper
 const debugLog = (label, data) => console.log(`[CommonForm] ${label}:`, data);
 
+// Password Strength Bar component (defined outside to keep renderInput cleaner)
+const PasswordStrengthBar = ({ password, getPasswordStrength }) => {
+  const strength = getPasswordStrength(password);
+
+  return (
+    <div className="mt-2">
+      <div className="w-full h-2 bg-neutral-700 rounded">
+        <div
+          className={`h-2 rounded transition-all duration-300 ${strength.color}`}
+          style={{ width: `${(strength.score / 5) * 100}%` }}
+        ></div>
+      </div>
+
+      <p className="text-sm mt-1 text-gray-300">{strength.label}</p>
+    </div>
+  );
+};
+
 export const CommonForm = ({
   formControls = [],
   formData = {},
@@ -22,6 +40,8 @@ export const CommonForm = ({
   buttonText = "Submit",
   showButton = true,
   onSubmit,
+  // Added disableButton prop here to handle state from Address.jsx
+  disableButton = false, 
 }) => {
   // Detect Register page via field presence
   const isRegisterPage = !!formControls.find((c) => c.name === "userName");
@@ -77,8 +97,16 @@ export const CommonForm = ({
   // Render Input control
   // -----------------------------
   const renderInput = (control) => {
-    const { componentType, name, label, placeholder, type, options } = control;
+    const { componentType, name, label, placeholder, type, options, className: customClass } = control;
     const value = formData[name] ?? "";
+    
+    // Default classes to enforce black background and white text for inputs
+    // We combine this with any custom classes passed in `addressFormControls`
+    const defaultInputClasses = "bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2";
+
+    // Combine default classes with any custom classes from formControls
+    const finalClasses = `${defaultInputClasses} ${customClass || ''}`;
+
 
     switch (componentType) {
       case "input": {
@@ -94,9 +122,9 @@ export const CommonForm = ({
               placeholder={placeholder}
               value={value}
               onChange={handleChange}
-              // !!! AUTOCOMPLETE OFF ADDED HERE !!!
               autocomplete="off" 
-              className="bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2 pr-10 focus:border-amber-400 focus:ring-amber-400"
+              // ✅ FIX 1: Changed 'text-gray' to 'text-white' for visibility on dark background
+              className={`${finalClasses} pr-10 focus:border-amber-400 focus:ring-amber-400`}
             />
 
             {/* Password Visibility Toggle */}
@@ -111,10 +139,11 @@ export const CommonForm = ({
                 }
                 className="absolute right-3 top-2 text-gray-200 hover:text-gray-100 transition"
               >
+                {/* ✅ FIX 2: Changed icon color to white/80 so it's visible on dark input background */}
                 {isVisible ? (
-                  <EyeOff size={19} className="text-black/60" />
+                  <EyeOff size={19} className="text-white/80" />
                 ) : (
-                  <Eye size={19} className="text-black/60" />
+                  <Eye size={19} className="text-white/80" />
                 )}
               </button>
             )}
@@ -138,9 +167,9 @@ export const CommonForm = ({
             placeholder={placeholder}
             value={value}
             onChange={handleChange}
-            // !!! AUTOCOMPLETE OFF ADDED HERE !!!
             autocomplete="off"
-            className="bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2"
+            // ✅ FIX: Textarea was already 'text-white' but ensures 'bg-neutral-800' is present
+            className={finalClasses}
           />
         );
 
@@ -152,7 +181,8 @@ export const CommonForm = ({
               setFormData((prev) => ({ ...prev, [name]: val }))
             }
           >
-            <SelectTrigger className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2">
+            {/* Select Trigger background is dark, but the inner value text should be white */}
+            <SelectTrigger className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-white">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent className="bg-neutral-900 text-gray-200">
@@ -172,9 +202,9 @@ export const CommonForm = ({
             name={name}
             type="file"
             onChange={handleChange}
-            // !!! AUTOCOMPLETE OFF ADDED HERE !!!
             autocomplete="off"
-            className="bg-neutral-800 text-white border border-neutral-700 rounded px-3 py-2"
+            // ✅ FIX: File Input was already 'text-white' but ensures 'bg-neutral-800' is present
+            className={finalClasses}
           />
         );
 
@@ -187,7 +217,7 @@ export const CommonForm = ({
     <form onSubmit={handleSubmit} className="space-y-4">
       {formControls.map((control) => (
         <div key={control.name} className="flex flex-col gap-1">
-          <Label htmlFor={control.name} className="text-gray-300 font-medium">
+          <Label htmlFor={control.name} className="text-gray-900 dark:text-gray-100 font-medium">
             {control.label}
           </Label>
           {renderInput(control)}
@@ -197,31 +227,15 @@ export const CommonForm = ({
       {showButton && (
         <Button
           type="submit"
-          className="mt-4 w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded"
+          // Disable button using the prop passed from Address.jsx
+          disabled={disableButton} 
+          className={`mt-4 w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded ${
+            disableButton ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           {buttonText}
         </Button>
       )}
     </form>
-  );
-};
-
-// --------------------------------------------------
-// PASSWORD STRENGTH BAR (Register Only)
-// --------------------------------------------------
-const PasswordStrengthBar = ({ password, getPasswordStrength }) => {
-  const strength = getPasswordStrength(password);
-
-  return (
-    <div className="mt-2">
-      <div className="w-full h-2 bg-neutral-700 rounded">
-        <div
-          className={`h-2 rounded transition-all duration-300 ${strength.color}`}
-          style={{ width: `${(strength.score / 5) * 100}%` }}
-        ></div>
-      </div>
-
-      <p className="text-sm mt-1 text-gray-300">{strength.label}</p>
-    </div>
   );
 };
